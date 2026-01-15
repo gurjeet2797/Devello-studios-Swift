@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6A1B56BF2F18AC860065C83C /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 6A1B56BE2F18AC860065C83C /* Auth */; };
+		6A1B56C12F18AC860065C83C /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 6A1B56C02F18AC860065C83C /* Functions */; };
+		6A1B56C32F18AC860065C83C /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 6A1B56C22F18AC860065C83C /* PostgREST */; };
+		6A1B56C52F18AC860065C83C /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 6A1B56C42F18AC860065C83C /* Realtime */; };
+		6A1B56C72F18AC860065C83C /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 6A1B56C62F18AC860065C83C /* Storage */; };
+		6A1B56C92F18AC860065C83C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 6A1B56C82F18AC860065C83C /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		6AB39E2E2ECEA73700C3E4FE /* Devello Studios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Devello Studios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +32,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A1B56C32F18AC860065C83C /* PostgREST in Frameworks */,
+				6A1B56C12F18AC860065C83C /* Functions in Frameworks */,
+				6A1B56C92F18AC860065C83C /* Supabase in Frameworks */,
+				6A1B56BF2F18AC860065C83C /* Auth in Frameworks */,
+				6A1B56C72F18AC860065C83C /* Storage in Frameworks */,
+				6A1B56C52F18AC860065C83C /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +80,12 @@
 			);
 			name = "Devello Studios";
 			packageProductDependencies = (
+				6A1B56BE2F18AC860065C83C /* Auth */,
+				6A1B56C02F18AC860065C83C /* Functions */,
+				6A1B56C22F18AC860065C83C /* PostgREST */,
+				6A1B56C42F18AC860065C83C /* Realtime */,
+				6A1B56C62F18AC860065C83C /* Storage */,
+				6A1B56C82F18AC860065C83C /* Supabase */,
 			);
 			productName = "Devello Studios";
 			productReference = 6AB39E2E2ECEA73700C3E4FE /* Devello Studios.app */;
@@ -77,8 +98,8 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastSwiftUpdateCheck = 2601;
+				LastUpgradeCheck = 2601;
 				TargetAttributes = {
 					6AB39E2D2ECEA73700C3E4FE = {
 						CreatedOnToolsVersion = 26.0.1;
@@ -94,6 +115,9 @@
 			);
 			mainGroup = 6AB39E252ECEA73700C3E4FE;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6A1B56BD2F18AC860065C83C /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6AB39E2F2ECEA73700C3E4FE /* Products */;
 			projectDirPath = "";
@@ -249,10 +273,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Devello Studios/DevelloStudios.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5G4T4U48J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Devello-Studios-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -280,10 +307,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Devello Studios/DevelloStudios.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5G4T4U48J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Devello-Studios-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -328,6 +358,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6A1B56BD2F18AC860065C83C /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6A1B56BE2F18AC860065C83C /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A1B56BD2F18AC860065C83C /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		6A1B56C02F18AC860065C83C /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A1B56BD2F18AC860065C83C /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		6A1B56C22F18AC860065C83C /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A1B56BD2F18AC860065C83C /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		6A1B56C42F18AC860065C83C /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A1B56BD2F18AC860065C83C /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		6A1B56C62F18AC860065C83C /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A1B56BD2F18AC860065C83C /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		6A1B56C82F18AC860065C83C /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A1B56BD2F18AC860065C83C /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6AB39E262ECEA73700C3E4FE /* Project object */;
 }

@@ -8,17 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var supabaseManager: SupabaseManager
+    @AppStorage("isDarkMode") private var isDarkMode = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        HomeView()
+            .preferredColorScheme(isDarkMode ? .dark : .light)
+            .task {
+                await supabaseManager.restoreSession()
+            }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(SupabaseManager())
 }
