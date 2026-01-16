@@ -4,34 +4,37 @@ struct GlassNavBar: View {
     @EnvironmentObject var supabaseManager: SupabaseManager
     @Binding var isMenuOpen: Bool
     @AppStorage("isDarkMode") private var isDarkMode = false
-
+    var onLogoTapped: (() -> Void)?
+    
+    init(isMenuOpen: Binding<Bool>, onLogoTapped: (() -> Void)? = nil) {
+        self._isMenuOpen = isMenuOpen
+        self.onLogoTapped = onLogoTapped
+    }
+    
     var body: some View {
-        HStack(spacing: DevelloStyle.Spacing.md) {
-            Image("devellologo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 32, height: 32)
-                .padding(8)
-                .glassEffect(.regular.interactive(), in: Circle())
-
-            Text("home")
-                .font(.custom("Snell Roundhand", size: 18))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .glassEffect(.regular.interactive(), in: Capsule())
+        HStack(spacing: 12) {
+            Button {
+                onLogoTapped?()
+            } label: {
+                Image("devellologo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 28, height: 28)
+            }
+            .frame(width: 40, height: 40)
+            .glassEffect(.clear.interactive(), in: Circle())
 
             Spacer()
 
             Button {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isDarkMode.toggle()
-                }
+                isDarkMode.toggle()
             } label: {
                 Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .frame(width: 36, height: 36)
+                    .font(.system(size: 14, weight: .semibold))
+                    .contentTransition(.symbolEffect(.replace))
             }
-            .glassEffect(.regular.interactive(), in: Circle())
+            .frame(width: 40, height: 40)
+            .glassEffect(.clear.interactive(), in: Circle())
 
             Button {
                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -39,10 +42,11 @@ struct GlassNavBar: View {
                 }
             } label: {
                 Image(systemName: isMenuOpen ? "xmark" : "line.3.horizontal")
-                    .font(.system(size: 16, weight: .semibold))
-                    .frame(width: 36, height: 36)
+                    .font(.system(size: 14, weight: .semibold))
+                    .contentTransition(.symbolEffect(.replace))
             }
-            .glassEffect(.regular.interactive(), in: Circle())
+            .frame(width: 40, height: 40)
+            .glassEffect(.clear.interactive(), in: Circle())
         }
         .padding(.horizontal, DevelloStyle.Spacing.lg)
         .padding(.top, DevelloStyle.Spacing.md)

@@ -5,7 +5,9 @@ struct ToolCardView: View {
     let subtitle: String
     let backgroundImage: String?
     let systemImage: String?
-
+    
+    private let cardHeight: CGFloat = 480
+    
     init(
         title: String,
         subtitle: String,
@@ -17,46 +19,62 @@ struct ToolCardView: View {
         self.backgroundImage = backgroundImage
         self.systemImage = systemImage
     }
-
+    
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack(alignment: .bottomLeading) {
+            // Background image
             if let backgroundImage {
                 Image(backgroundImage)
                     .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: cardHeight)
                     .clipped()
-                    .overlay(Color.black.opacity(0.2))
             } else {
-                RoundedRectangle(cornerRadius: DevelloStyle.CornerRadius.lg)
-                    .fill(Color(.secondarySystemBackground))
+                Rectangle()
+                    .fill(Color(.tertiarySystemFill))
+                    .frame(height: cardHeight)
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                if let systemImage {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 20, weight: .semibold))
-                }
-
+            
+            // Glass text overlay at bottom
+            VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(DevelloStyle.Fonts.subtitle)
-                    .fontWeight(.semibold)
-
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.white)
+                
                 Text(subtitle)
-                    .font(DevelloStyle.Fonts.body)
-                    .fontWeight(.regular)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.25))
+                    .lineLimit(2)
             }
-            .foregroundStyle(.white)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(DevelloStyle.Spacing.lg)
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: DevelloStyle.CornerRadius.lg, style: .continuous))
+            .padding(16)
+            .background {
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+            }
         }
-        .frame(height: 240)
-        .clipShape(RoundedRectangle(cornerRadius: DevelloStyle.CornerRadius.lg))
+        .frame(height: cardHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+        .glassEffect(.clear.interactive(), in: .rect(cornerRadius: 40))
     }
 }
 
 #Preview {
-    ToolCardView(title: "Lighting Studio", subtitle: "Relight your image", backgroundImage: "lightingtool", systemImage: "lightbulb")
-        .padding()
+    ScrollView {
+        VStack(spacing: 20) {
+            ToolCardView(
+                title: "Lighting Studio",
+                subtitle: "Pick a time of day and let the sun be your lighting director",
+                backgroundImage: "lightingtool"
+            )
+            
+            ToolCardView(
+                title: "Image Editor",
+                subtitle: "Edit a single hotspot with AI guidance",
+                backgroundImage: "editortool"
+            )
+        }
+        .padding(.horizontal, 20)
+    }
 }

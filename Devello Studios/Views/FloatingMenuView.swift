@@ -7,51 +7,40 @@ struct FloatingMenuView: View {
     @State private var showingSignIn = false
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: DevelloStyle.Spacing.md) {
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: DevelloStyle.Spacing.md) {
-                NavigationLink {
-                    LightingView()
-                } label: {
-                    Text("Relight App")
-                        .frame(width: 160, height: 44)
-                }
-                .buttonStyle(.glass)
-                .tint(.yellow)
-
-                NavigationLink {
-                    ImageEditorView()
-                } label: {
-                    Text("Image Editor")
-                        .frame(width: 160, height: 44)
-                }
-                .buttonStyle(.glass)
-                .tint(.purple)
-
-                Button("Product Editor") { }
-                    .frame(width: 160, height: 44)
-                    .buttonStyle(.glass)
-                    .tint(.mint)
-                    .disabled(true)
-
-                Button(supabaseManager.session == nil ? "Sign In" : "Sign Out") {
-                    if supabaseManager.session == nil {
-                        showingSignIn = true
-                    } else {
-                        Task { await supabaseManager.signOut() }
-                    }
-                }
-                .frame(width: 160, height: 44)
-                .buttonStyle(.glass)
-                .tint(.blue)
+        VStack(alignment: .trailing, spacing: DevelloStyle.Spacing.sm) {
+            NavigationLink {
+                LightingView()
+            } label: {
+                Text("Relight App")
+                    .font(DevelloStyle.Fonts.body)
+                    .frame(width: 150, height: 40)
             }
+            .buttonStyle(.glass)
+
+            NavigationLink {
+                ImageEditorView()
+            } label: {
+                Text("Image Editor")
+                    .font(DevelloStyle.Fonts.body)
+                    .frame(width: 150, height: 40)
+            }
+            .buttonStyle(.glass)
+
+            Button(supabaseManager.session == nil ? "Sign In" : "Sign Out") {
+                if supabaseManager.session == nil {
+                    showingSignIn = true
+                } else {
+                    Task { await supabaseManager.signOut() }
+                }
+            }
+            .font(DevelloStyle.Fonts.body)
+            .frame(width: 150, height: 40)
+            .buttonStyle(.glass)
         }
         .padding(.trailing, DevelloStyle.Spacing.lg)
-        .padding(.top, 120)
-        .padding(.bottom, 80)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-        .offset(x: isShowing ? 0 : 220)
+        .padding(.top, 70)
+        .frame(maxWidth: .infinity, alignment: .topTrailing)
+        .offset(x: isShowing ? 0 : 200)
         .animation(.easeInOut(duration: 0.3), value: isShowing)
         .sheet(isPresented: $showingSignIn) {
             SignInView()
