@@ -104,8 +104,8 @@ final class ImageEditorViewModel: ObservableObject {
                 bearerToken: accessToken
             )
 
-            let finalURL = try await resolveOutputURL(from: response, bearerToken: accessToken)
-            outputImage = try await ImageEngine.loadImage(from: finalURL)
+            let finalURLString = try await resolveOutputURL(from: response, bearerToken: accessToken)
+            outputImage = try await ImageEngine.loadImage(from: finalURLString)
             lastRequestId = response.request_id
         } catch {
             errorMessage = error.localizedDescription
@@ -114,9 +114,9 @@ final class ImageEditorViewModel: ObservableObject {
         isLoading = false
     }
 
-    private func resolveOutputURL(from response: IOSActionResponse, bearerToken: String) async throws -> URL {
-        if let output = response.output_url, let url = URL(string: output) {
-            return url
+    private func resolveOutputURL(from response: IOSActionResponse, bearerToken: String) async throws -> String {
+        if let output = response.output_url {
+            return output
         }
 
         if response.status == "processing", let jobId = response.job_id ?? response.request_id {
@@ -126,12 +126,12 @@ final class ImageEditorViewModel: ObservableObject {
         throw NSError(domain: "ImageEditorViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve output image"])
     }
 
-    private func pollJob(jobId: String, bearerToken: String) async throws -> URL {
+    private func pollJob(jobId: String, bearerToken: String) async throws -> String {
         var attempt = 0
         while attempt < 30 {
             let result = try await backendService.pollJob(jobId: jobId, bearerToken: bearerToken)
-            if let output = result.output_url, let url = URL(string: output) {
-                return url
+            if let output = result.output_url {
+                return output
             }
             if result.status != "processing" {
                 throw NSError(domain: "ImageEditorViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: result.error ?? "Job failed"])

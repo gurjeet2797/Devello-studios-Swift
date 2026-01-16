@@ -1,0 +1,14 @@
+{
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/ios/edit/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/ios/lighting/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/ios/jobs/[jobId]/route.ts": {
+      "maxDuration": 10
+    }
+  }
+}
