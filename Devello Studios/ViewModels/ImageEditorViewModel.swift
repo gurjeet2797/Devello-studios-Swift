@@ -22,7 +22,6 @@ final class ImageEditorViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var selectedMarkerId: UUID?
-    @Published var lastRequestId: String?
 
     private var supabaseManager: SupabaseManager?
     private let backendService = IOSBackendService()
@@ -56,7 +55,6 @@ final class ImageEditorViewModel: ObservableObject {
     func resetEdits() {
         outputImage = nil
         errorMessage = nil
-        lastRequestId = nil
         markers = []
     }
 
@@ -66,8 +64,8 @@ final class ImageEditorViewModel: ObservableObject {
             return
         }
 
-        guard let accessToken = supabaseManager?.accessToken else {
-            errorMessage = "Please sign in to continue."
+        guard let supabaseManager else {
+            errorMessage = "Service not configured."
             return
         }
 
@@ -85,11 +83,13 @@ final class ImageEditorViewModel: ObservableObject {
         errorMessage = nil
 
         do {
+            // Compress image
             guard let imageData = ImageCompression.jpegData(from: inputImage) else {
                 throw NSError(domain: "ImageEditorViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
             }
 
-            let storageService = SupabaseStorageService(client: supabaseManager!.client)
+            // Upload to Supabase storage to get public URL
+            let storageService = SupabaseStorageService(client: supabaseManager.client)
             let imageURL = try await storageService.uploadImage(data: imageData)
 
             let hotspot = IOSHotspot(
@@ -97,48 +97,24 @@ final class ImageEditorViewModel: ObservableObject {
                 y: Double(firstMarker.normalizedPoint.y)
             )
 
+            // Call backend (no auth required)
             let response = try await backendService.runSingleEdit(
                 imageURL: imageURL.absoluteString,
                 hotspot: hotspot,
-                prompt: firstMarker.prompt,
-                bearerToken: accessToken
+                prompt: firstMarker.prompt
             )
 
-            let finalURLString = try await resolveOutputURL(from: response, bearerToken: accessToken)
-            outputImage = try await ImageEngine.loadImage(from: finalURLString)
-            lastRequestId = response.request_id
+            // Handle response
+            guard response.ok, let outputURLString = response.output_url else {
+                throw NSError(domain: "ImageEditorViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "Processing failed"])
+            }
+
+            // Load the output image
+            outputImage = try await ImageEngine.loadImage(from: outputURLString)
         } catch {
             errorMessage = error.localizedDescription
         }
 
         isLoading = false
-    }
-
-    private func resolveOutputURL(from response: IOSActionResponse, bearerToken: String) async throws -> String {
-        if let output = response.output_url {
-            return output
-        }
-
-        if response.status == "processing", let jobId = response.job_id ?? response.request_id {
-            return try await pollJob(jobId: jobId, bearerToken: bearerToken)
-        }
-
-        throw NSError(domain: "ImageEditorViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve output image"])
-    }
-
-    private func pollJob(jobId: String, bearerToken: String) async throws -> String {
-        var attempt = 0
-        while attempt < 30 {
-            let result = try await backendService.pollJob(jobId: jobId, bearerToken: bearerToken)
-            if let output = result.output_url {
-                return output
-            }
-            if result.status != "processing" {
-                throw NSError(domain: "ImageEditorViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: result.error ?? "Job failed"])
-            }
-            attempt += 1
-            try await Task.sleep(nanoseconds: 2_000_000_000)
-        }
-        throw NSError(domain: "ImageEditorViewModel", code: 3, userInfo: [NSLocalizedDescriptionKey: "Processing timed out"])
     }
 }

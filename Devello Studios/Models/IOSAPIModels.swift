@@ -24,24 +24,8 @@ struct IOSHotspot: Codable {
     let y: Double
 }
 
-struct IOSJobResponse: Decodable {
-    let ok: Bool
-    let status: String?
-    let output_url: String?
-    let request_id: String?
-    let job_id: String?
-    let error: String?
-    let code: String?
-}
-
 struct IOSActionResponse: Decodable {
     let ok: Bool
-    let status: String?
     let output_url: String?
-    let input_url: String?
-    let request_id: String?
-    let job_id: String?
-    let model: String?
     let error: String?
-    let code: String?
 }

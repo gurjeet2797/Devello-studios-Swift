@@ -7,41 +7,69 @@ struct FloatingMenuView: View {
     @State private var showingSignIn = false
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: DevelloStyle.Spacing.sm) {
+        VStack(alignment: .trailing, spacing: 12) {
             NavigationLink {
                 LightingView()
             } label: {
-                Text("Relight App")
-                    .font(DevelloStyle.Fonts.body)
-                    .frame(width: 150, height: 40)
+                HStack(spacing: 10) {
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Lighting Studio")
+                        .font(.system(size: 15, weight: .medium))
+                }
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .buttonStyle(.glass)
+            .glassEffect(.clear.interactive(), in: Capsule())
+            .simultaneousGesture(TapGesture().onEnded {
+                withAnimation { isShowing = false }
+            })
 
             NavigationLink {
                 ImageEditorView()
             } label: {
-                Text("Image Editor")
-                    .font(DevelloStyle.Fonts.body)
-                    .frame(width: 150, height: 40)
+                HStack(spacing: 10) {
+                    Image(systemName: "photo.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Image Editor")
+                        .font(.system(size: 15, weight: .medium))
+                }
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .buttonStyle(.glass)
+            .glassEffect(.clear.interactive(), in: Capsule())
+            .simultaneousGesture(TapGesture().onEnded {
+                withAnimation { isShowing = false }
+            })
 
-            Button(supabaseManager.session == nil ? "Sign In" : "Sign Out") {
+            Button {
                 if supabaseManager.session == nil {
                     showingSignIn = true
                 } else {
                     Task { await supabaseManager.signOut() }
                 }
+                withAnimation { isShowing = false }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: supabaseManager.session == nil ? "person.fill" : "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text(supabaseManager.session == nil ? "Sign In" : "Sign Out")
+                        .font(.system(size: 15, weight: .medium))
+                }
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .font(DevelloStyle.Fonts.body)
-            .frame(width: 150, height: 40)
-            .buttonStyle(.glass)
+            .glassEffect(.clear.interactive(), in: Capsule())
         }
-        .padding(.trailing, DevelloStyle.Spacing.lg)
-        .padding(.top, 70)
-        .frame(maxWidth: .infinity, alignment: .topTrailing)
-        .offset(x: isShowing ? 0 : 200)
-        .animation(.easeInOut(duration: 0.3), value: isShowing)
+        .padding(.trailing, 20)
+        .padding(.top, 80)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+        .opacity(isShowing ? 1 : 0)
+        .offset(x: isShowing ? 0 : 50)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isShowing)
         .sheet(isPresented: $showingSignIn) {
             SignInView()
                 .environmentObject(supabaseManager)
@@ -52,7 +80,7 @@ struct FloatingMenuView: View {
 #Preview {
     NavigationStack {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color.gray.opacity(0.2).ignoresSafeArea()
             FloatingMenuView(isShowing: .constant(true))
                 .environmentObject(SupabaseManager())
         }

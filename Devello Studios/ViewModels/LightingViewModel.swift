@@ -9,7 +9,6 @@ final class LightingViewModel: ObservableObject {
     @Published var selectedStyle: LightingStyle = .dramaticDaylight
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var lastRequestId: String?
 
     private var supabaseManager: SupabaseManager?
     private let backendService = IOSBackendService()
@@ -21,7 +20,6 @@ final class LightingViewModel: ObservableObject {
     func reset() {
         outputImage = nil
         errorMessage = nil
-        lastRequestId = nil
     }
 
     func processLighting() async {
@@ -30,8 +28,8 @@ final class LightingViewModel: ObservableObject {
             return
         }
 
-        guard let accessToken = supabaseManager?.accessToken else {
-            errorMessage = "Please sign in to continue."
+        guard let supabaseManager else {
+            errorMessage = "Service not configured."
             return
         }
 
@@ -39,54 +37,32 @@ final class LightingViewModel: ObservableObject {
         errorMessage = nil
 
         do {
+            // Compress image
             guard let imageData = ImageCompression.jpegData(from: inputImage) else {
                 throw NSError(domain: "LightingViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
             }
 
-            let storageService = SupabaseStorageService(client: supabaseManager!.client)
+            // Upload to Supabase storage to get public URL
+            let storageService = SupabaseStorageService(client: supabaseManager.client)
             let imageURL = try await storageService.uploadImage(data: imageData)
 
+            // Call backend (no auth required)
             let response = try await backendService.runLighting(
                 imageURL: imageURL.absoluteString,
-                style: selectedStyle,
-                bearerToken: accessToken
+                style: selectedStyle
             )
 
-            let finalURLString = try await resolveOutputURL(from: response, bearerToken: accessToken)
-            outputImage = try await ImageEngine.loadImage(from: finalURLString)
-            lastRequestId = response.request_id
+            // Handle response
+            guard response.ok, let outputURLString = response.output_url else {
+                throw NSError(domain: "LightingViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "Processing failed"])
+            }
+
+            // Load the output image
+            outputImage = try await ImageEngine.loadImage(from: outputURLString)
         } catch {
             errorMessage = error.localizedDescription
         }
 
         isLoading = false
-    }
-
-    private func resolveOutputURL(from response: IOSActionResponse, bearerToken: String) async throws -> String {
-        if let output = response.output_url {
-            return output
-        }
-
-        if response.status == "processing", let jobId = response.job_id ?? response.request_id {
-            return try await pollJob(jobId: jobId, bearerToken: bearerToken)
-        }
-
-        throw NSError(domain: "LightingViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve output image"])
-    }
-
-    private func pollJob(jobId: String, bearerToken: String) async throws -> String {
-        var attempt = 0
-        while attempt < 30 {
-            let result = try await backendService.pollJob(jobId: jobId, bearerToken: bearerToken)
-            if let output = result.output_url {
-                return output
-            }
-            if result.status != "processing" {
-                throw NSError(domain: "LightingViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: result.error ?? "Job failed"])
-            }
-            attempt += 1
-            try await Task.sleep(nanoseconds: 2_000_000_000)
-        }
-        throw NSError(domain: "LightingViewModel", code: 3, userInfo: [NSLocalizedDescriptionKey: "Processing timed out"])
     }
 }

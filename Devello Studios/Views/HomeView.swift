@@ -93,21 +93,20 @@ struct HomeView: View {
                     }
                 }
 
+                GlassNavBar(isMenuOpen: $isMenuOpen) {
+                    scrollToTop?()
+                }
+                
                 if isMenuOpen {
-                    Color.black.opacity(0.2)
+                    Color.black.opacity(0.3)
                         .ignoresSafeArea()
                         .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                 isMenuOpen = false
                             }
                         }
-                }
-
-                FloatingMenuView(isShowing: $isMenuOpen)
-                    .allowsHitTesting(isMenuOpen)
-
-                GlassNavBar(isMenuOpen: $isMenuOpen) {
-                    scrollToTop?()
+                    
+                    FloatingMenuView(isShowing: $isMenuOpen)
                 }
             }
             .background {

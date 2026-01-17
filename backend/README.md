@@ -1,14 +1,13 @@
 # Devello iOS Backend
 
-Next.js backend API for Devello Studios iOS app, providing image lighting and editing capabilities.
+Simplified Next.js backend API for Devello Studios iOS app, powered by Google Gemini for image lighting and editing.
 
 ## Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/ios/lighting` | Create lighting prediction (async, requires polling) |
-| POST | `/api/ios/edit` | Create general edit (synchronous) |
-| GET | `/api/ios/jobs/:jobId` | Poll job status for lighting predictions |
+| POST | `/api/ios/lighting` | Apply lighting style to image |
+| POST | `/api/ios/edit` | Apply hotspot-targeted edit to image |
 
 ## Setup
 
@@ -18,15 +17,16 @@ Next.js backend API for Devello Studios iOS app, providing image lighting and ed
    npm install
    ```
 
-2. Copy environment variables:
+2. Create environment file:
    ```bash
    cp .env.example .env
    ```
 
-3. Fill in the environment variables in `.env`:
-   - `REPLICATE_API_TOKEN` - From [Replicate](https://replicate.com/account/api-tokens)
-   - `GOOGLE_API_KEY` - From [Google AI Studio](https://aistudio.google.com/app/apikey)
-   - `SUPABASE_JWT_SECRET` - From Supabase Dashboard > Settings > API > JWT Settings
+3. Add your Google API key to `.env`:
+   ```
+   GOOGLE_API_KEY=your_api_key_here
+   ```
+   Get your key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 
 4. Run development server:
    ```bash
@@ -38,25 +38,50 @@ Next.js backend API for Devello Studios iOS app, providing image lighting and ed
 1. Push to your repository
 2. Import project in Vercel
 3. Set root directory to `backend`
-4. Add environment variables in Vercel dashboard
+4. Add `GOOGLE_API_KEY` environment variable
 5. Deploy
 
 ## API Details
 
-### Lighting Tool
-- Uses Replicate's `flux-kontext-max` model
-- Supports 3 styles: "Dramatic Daylight", "Midday Bright", "Cozy Evening"
-- Async processing - returns job ID, poll for result
+### Lighting Tool (`POST /api/ios/lighting`)
 
-### Edit Tool
-- Uses Google Gemini `gemini-2.0-flash-exp`
-- Synchronous - returns result directly
-- Supports hotspot-based localized edits
-
-## iOS Integration
-
-Update `Devello-Studios-Info.plist` with the deployed backend URL:
-```xml
-<key>BACKEND_BASE_URL</key>
-<string>https://your-vercel-app.vercel.app</string>
+Request:
+```json
+{
+  "image_url": "https://...",
+  "style": "Dramatic Daylight"
+}
 ```
+
+Styles: `"Dramatic Daylight"`, `"Midday Bright"`, `"Cozy Evening"`
+
+Response:
+```json
+{
+  "ok": true,
+  "output_url": "data:image/png;base64,..."
+}
+```
+
+### Edit Tool (`POST /api/ios/edit`)
+
+Request:
+```json
+{
+  "image_url": "https://...",
+  "hotspot": { "x": 0.5, "y": 0.5 },
+  "prompt": "Remove the red car"
+}
+```
+
+Response:
+```json
+{
+  "ok": true,
+  "output_url": "data:image/png;base64,..."
+}
+```
+
+## Model
+
+Both tools use **Gemini 2.5 Flash** (`gemini-2.5-flash-preview-04-17`) for image generation.
