@@ -9,12 +9,12 @@ enum LightingStyle: String, CaseIterable, Identifiable {
 }
 
 struct IOSLightingRequest: Encodable {
-    let image_url: String
+    let image_base64: String
     let style: String
 }
 
 struct IOSSingleEditRequest: Encodable {
-    let image_url: String
+    let image_base64: String
     let hotspot: IOSHotspot
     let prompt: String
 }
@@ -26,6 +26,6 @@ struct IOSHotspot: Codable {
 
 struct IOSActionResponse: Decodable {
     let ok: Bool
-    let output_url: String?
+    let image_base64: String?
     let error: String?
 }

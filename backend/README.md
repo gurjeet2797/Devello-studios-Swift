@@ -1,6 +1,6 @@
 # Devello iOS Backend
 
-Simplified Next.js backend API for Devello Studios iOS app, powered by Google Gemini for image lighting and editing.
+Simple Next.js backend API for Devello Studios iOS app, powered by Google Gemini for image lighting and editing.
 
 ## Endpoints
 
@@ -48,7 +48,7 @@ Simplified Next.js backend API for Devello Studios iOS app, powered by Google Ge
 Request:
 ```json
 {
-  "image_url": "https://...",
+  "image_base64": "base64_encoded_jpeg_data",
   "style": "Dramatic Daylight"
 }
 ```
@@ -59,7 +59,7 @@ Response:
 ```json
 {
   "ok": true,
-  "output_url": "data:image/png;base64,..."
+  "image_base64": "base64_encoded_result"
 }
 ```
 
@@ -68,7 +68,7 @@ Response:
 Request:
 ```json
 {
-  "image_url": "https://...",
+  "image_base64": "base64_encoded_jpeg_data",
   "hotspot": { "x": 0.5, "y": 0.5 },
   "prompt": "Remove the red car"
 }
@@ -78,10 +78,14 @@ Response:
 ```json
 {
   "ok": true,
-  "output_url": "data:image/png;base64,..."
+  "image_base64": "base64_encoded_result"
 }
 ```
 
 ## Model
 
 Both tools use **Gemini 2.5 Flash** (`gemini-2.5-flash-preview-04-17`) for image generation.
+
+## iOS Configuration
+
+The iOS app only needs `BACKEND_BASE_URL` set in Info.plist. No Supabase configuration required for the tools.

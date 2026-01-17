@@ -8,24 +8,8 @@ const GEMINI_MODEL = 'gemini-2.5-flash-preview-04-17';
 
 export interface GeminiResult {
   success: boolean;
-  imageDataUrl?: string;
+  imageBase64?: string;
   error?: string;
-}
-
-async function fetchImageAsBase64(url: string): Promise<{ data: string; mimeType: string }> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image: ${response.statusText}`);
-  }
-
-  const contentType = response.headers.get('content-type') || 'image/jpeg';
-  const arrayBuffer = await response.arrayBuffer();
-  const base64 = Buffer.from(arrayBuffer).toString('base64');
-
-  return {
-    data: base64,
-    mimeType: contentType,
-  };
 }
 
 function getModel() {
@@ -52,8 +36,8 @@ function extractImageFromResponse(response: any): GeminiResult {
 
   for (const part of parts) {
     if (part.inlineData?.mimeType?.startsWith('image/')) {
-      const dataUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-      return { success: true, imageDataUrl: dataUrl };
+      // Return raw base64 without data URL prefix
+      return { success: true, imageBase64: part.inlineData.data };
     }
   }
 
@@ -62,21 +46,22 @@ function extractImageFromResponse(response: any): GeminiResult {
 
 /**
  * Create a lighting edit using Gemini
+ * @param imageBase64 - Raw base64 encoded image data (no data URL prefix)
+ * @param style - Lighting style to apply
  */
 export async function createLightingEdit(
-  imageUrl: string,
+  imageBase64: string,
   style: string
 ): Promise<GeminiResult> {
   try {
     const model = getModel();
-    const imageData = await fetchImageAsBase64(imageUrl);
     const prompt = getLightingPrompt(style);
 
     const result = await model.generateContent([
       {
         inlineData: {
-          mimeType: imageData.mimeType,
-          data: imageData.data,
+          mimeType: 'image/jpeg',
+          data: imageBase64,
         },
       },
       { text: prompt },
@@ -91,22 +76,24 @@ export async function createLightingEdit(
 
 /**
  * Create a general edit using Gemini with hotspot targeting
+ * @param imageBase64 - Raw base64 encoded image data (no data URL prefix)
+ * @param hotspot - Normalized coordinates (0-1) for edit location
+ * @param userPrompt - User's edit instruction
  */
 export async function createGeneralEdit(
-  imageUrl: string,
+  imageBase64: string,
   hotspot: { x: number; y: number },
   userPrompt: string
 ): Promise<GeminiResult> {
   try {
     const model = getModel();
-    const imageData = await fetchImageAsBase64(imageUrl);
     const prompt = buildEditPrompt(userPrompt, hotspot);
 
     const result = await model.generateContent([
       {
         inlineData: {
-          mimeType: imageData.mimeType,
-          data: imageData.data,
+          mimeType: 'image/jpeg',
+          data: imageBase64,
         },
       },
       { text: prompt },

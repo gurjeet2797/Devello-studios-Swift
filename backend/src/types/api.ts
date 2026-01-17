@@ -1,12 +1,12 @@
 // Types matching iOS API models
 
 export interface IOSLightingRequest {
-  image_url: string;
+  image_base64: string;
   style?: string;
 }
 
 export interface IOSSingleEditRequest {
-  image_url: string;
+  image_base64: string;
   hotspot: IOSHotspot;
   prompt: string;
 }
@@ -18,7 +18,7 @@ export interface IOSHotspot {
 
 export interface IOSActionResponse {
   ok: boolean;
-  output_url?: string;
+  image_base64?: string;
   error?: string;
 }
 

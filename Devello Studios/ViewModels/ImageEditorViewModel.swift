@@ -23,12 +23,7 @@ final class ImageEditorViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var selectedMarkerId: UUID?
 
-    private var supabaseManager: SupabaseManager?
     private let backendService = IOSBackendService()
-
-    func configure(supabaseManager: SupabaseManager) {
-        self.supabaseManager = supabaseManager
-    }
 
     func addMarker(at normalizedPoint: CGPoint) {
         if markers.isEmpty {
@@ -64,11 +59,6 @@ final class ImageEditorViewModel: ObservableObject {
             return
         }
 
-        guard let supabaseManager else {
-            errorMessage = "Service not configured."
-            return
-        }
-
         guard let firstMarker = markers.first else {
             errorMessage = "Please add a hotspot."
             return
@@ -83,34 +73,36 @@ final class ImageEditorViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            // Compress image
+            // Compress image to JPEG and convert to base64
             guard let imageData = ImageCompression.jpegData(from: inputImage) else {
                 throw NSError(domain: "ImageEditorViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
             }
-
-            // Upload to Supabase storage to get public URL
-            let storageService = SupabaseStorageService(client: supabaseManager.client)
-            let imageURL = try await storageService.uploadImage(data: imageData)
+            let base64String = imageData.base64EncodedString()
 
             let hotspot = IOSHotspot(
                 x: Double(firstMarker.normalizedPoint.x),
                 y: Double(firstMarker.normalizedPoint.y)
             )
 
-            // Call backend (no auth required)
+            // Call backend with base64 data
             let response = try await backendService.runSingleEdit(
-                imageURL: imageURL.absoluteString,
+                imageBase64: base64String,
                 hotspot: hotspot,
                 prompt: firstMarker.prompt
             )
 
             // Handle response
-            guard response.ok, let outputURLString = response.output_url else {
+            guard response.ok, let outputBase64 = response.image_base64 else {
                 throw NSError(domain: "ImageEditorViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "Processing failed"])
             }
 
-            // Load the output image
-            outputImage = try await ImageEngine.loadImage(from: outputURLString)
+            // Convert base64 response to UIImage
+            guard let outputData = Data(base64Encoded: outputBase64),
+                  let output = UIImage(data: outputData) else {
+                throw NSError(domain: "ImageEditorViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to decode output image"])
+            }
+
+            outputImage = output
         } catch {
             errorMessage = error.localizedDescription
         }

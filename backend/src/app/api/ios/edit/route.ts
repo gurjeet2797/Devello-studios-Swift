@@ -8,11 +8,11 @@ export async function POST(request: NextRequest) {
   try {
     const body: IOSSingleEditRequest = await request.json();
 
-    if (!body.image_url) {
+    if (!body.image_base64) {
       return NextResponse.json(
         {
           ok: false,
-          error: 'image_url is required',
+          error: 'image_base64 is required',
         } satisfies IOSActionResponse,
         { status: 400 }
       );
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await createGeneralEdit(body.image_url, body.hotspot, body.prompt);
+    const result = await createGeneralEdit(body.image_base64, body.hotspot, body.prompt);
 
     if (!result.success) {
       return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      output_url: result.imageDataUrl,
+      image_base64: result.imageBase64,
     } satisfies IOSActionResponse);
   } catch (error) {
     console.error('Edit error:', error);

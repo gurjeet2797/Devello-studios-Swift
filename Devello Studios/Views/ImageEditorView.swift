@@ -2,7 +2,6 @@ import SwiftUI
 import PhotosUI
 
 struct ImageEditorView: View {
-    @EnvironmentObject var supabaseManager: SupabaseManager
     @StateObject private var viewModel = ImageEditorViewModel()
 
     @State private var selectedItem: PhotosPickerItem?
@@ -140,9 +139,6 @@ struct ImageEditorView: View {
         }
         .padding(DevelloStyle.Spacing.lg)
         .navigationTitle("Image Editor")
-        .onAppear {
-            viewModel.configure(supabaseManager: supabaseManager)
-        }
         .onChange(of: selectedItem) { _, newItem in
             guard let newItem else { return }
             Task {
@@ -224,5 +220,4 @@ private struct PromptEditorView: View {
 
 #Preview {
     ImageEditorView()
-        .environmentObject(SupabaseManager())
 }

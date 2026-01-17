@@ -10,12 +10,7 @@ final class LightingViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private var supabaseManager: SupabaseManager?
     private let backendService = IOSBackendService()
-
-    func configure(supabaseManager: SupabaseManager) {
-        self.supabaseManager = supabaseManager
-    }
 
     func reset() {
         outputImage = nil
@@ -28,37 +23,34 @@ final class LightingViewModel: ObservableObject {
             return
         }
 
-        guard let supabaseManager else {
-            errorMessage = "Service not configured."
-            return
-        }
-
         isLoading = true
         errorMessage = nil
 
         do {
-            // Compress image
+            // Compress image to JPEG and convert to base64
             guard let imageData = ImageCompression.jpegData(from: inputImage) else {
                 throw NSError(domain: "LightingViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
             }
+            let base64String = imageData.base64EncodedString()
 
-            // Upload to Supabase storage to get public URL
-            let storageService = SupabaseStorageService(client: supabaseManager.client)
-            let imageURL = try await storageService.uploadImage(data: imageData)
-
-            // Call backend (no auth required)
+            // Call backend with base64 data
             let response = try await backendService.runLighting(
-                imageURL: imageURL.absoluteString,
+                imageBase64: base64String,
                 style: selectedStyle
             )
 
             // Handle response
-            guard response.ok, let outputURLString = response.output_url else {
+            guard response.ok, let outputBase64 = response.image_base64 else {
                 throw NSError(domain: "LightingViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "Processing failed"])
             }
 
-            // Load the output image
-            outputImage = try await ImageEngine.loadImage(from: outputURLString)
+            // Convert base64 response to UIImage
+            guard let outputData = Data(base64Encoded: outputBase64),
+                  let output = UIImage(data: outputData) else {
+                throw NSError(domain: "LightingViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to decode output image"])
+            }
+
+            outputImage = output
         } catch {
             errorMessage = error.localizedDescription
         }

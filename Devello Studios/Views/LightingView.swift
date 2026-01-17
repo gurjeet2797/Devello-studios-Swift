@@ -2,7 +2,6 @@ import SwiftUI
 import PhotosUI
 
 struct LightingView: View {
-    @EnvironmentObject var supabaseManager: SupabaseManager
     @StateObject private var viewModel = LightingViewModel()
 
     @State private var selectedItem: PhotosPickerItem?
@@ -89,9 +88,6 @@ struct LightingView: View {
         }
         .padding(DevelloStyle.Spacing.lg)
         .navigationTitle("Lighting Studio")
-        .onAppear {
-            viewModel.configure(supabaseManager: supabaseManager)
-        }
         .onChange(of: selectedItem) { _, newItem in
             guard let newItem else { return }
             Task {
@@ -107,5 +103,4 @@ struct LightingView: View {
 
 #Preview {
     LightingView()
-        .environmentObject(SupabaseManager())
 }
