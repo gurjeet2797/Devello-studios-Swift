@@ -30,26 +30,28 @@ struct HomeView: View {
                             }
                             .padding(.bottom, 40)
 
-                            VStack(alignment: .leading, spacing: DevelloStyle.Spacing.lg) {
-                                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            VStack(alignment: .leading, spacing: DevelloStyle.Spacing.md) {
+                                HStack(alignment: .firstTextBaseline) {
                                     Text("Apps.")
                                         .font(.system(size: 34, weight: .bold))
                                         .foregroundStyle(.primary)
 
+                                    Spacer()
+                                    
                                     Text("Try our in-house tools")
                                         .font(DevelloStyle.Fonts.body)
                                         .foregroundStyle(.secondary)
                                 }
 
-                                Text("Advanced lighting simulation and AI-powered image editing tools for designers.")
+                                Text("Adjust the time of day and edit images quickly.")
                                     .font(DevelloStyle.Fonts.body)
                                     .foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             .padding(.horizontal, DevelloStyle.Spacing.lg)
 
-                            GlassEffectContainer(spacing: 24) {
-                                VStack(spacing: 20) {
+                            GlassEffectContainer(spacing: 32) {
+                                VStack(spacing: 32) {
                                     NavigationLink {
                                         LightingView()
                                     } label: {

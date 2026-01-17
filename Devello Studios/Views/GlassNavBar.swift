@@ -31,6 +31,7 @@ struct GlassNavBar: View {
             } label: {
                 Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
                     .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(isDarkMode ? .white : .black)
                     .contentTransition(.symbolEffect(.replace))
             }
             .frame(width: 40, height: 40)
@@ -43,6 +44,7 @@ struct GlassNavBar: View {
             } label: {
                 Image(systemName: isMenuOpen ? "xmark" : "line.3.horizontal")
                     .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(isDarkMode ? .white : .black)
                     .contentTransition(.symbolEffect(.replace))
             }
             .frame(width: 40, height: 40)

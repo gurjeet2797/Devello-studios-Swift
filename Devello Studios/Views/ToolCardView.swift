@@ -21,48 +21,51 @@ struct ToolCardView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            // Background image
-            if let backgroundImage {
-                Image(backgroundImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: cardHeight)
-                    .clipped()
-            } else {
-                Rectangle()
-                    .fill(Color(.tertiarySystemFill))
-                    .frame(height: cardHeight)
-            }
-            
-            // Glass text overlay at bottom
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 12) {
+            // Card with image and centered title
+            ZStack(alignment: .bottom) {
+                // Background image
+                if let backgroundImage {
+                    Image(backgroundImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: cardHeight)
+                        .clipped()
+                } else {
+                    Rectangle()
+                        .fill(Color(.tertiarySystemFill))
+                        .frame(height: cardHeight)
+                }
+                
+                // Glass title overlay at bottom - centered
                 Text(title)
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white)
-                
-                Text(subtitle)
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.25))
-                    .lineLimit(2)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background {
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .environment(\.colorScheme, .dark)
+                    }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .environment(\.colorScheme, .dark)
-            }
+            .frame(height: cardHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+            .glassEffect(.clear.interactive(), in: .rect(cornerRadius: 40))
+            
+            // Description below the card - left aligned
+            Text(subtitle)
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .padding(.horizontal, 4)
         }
-        .frame(height: cardHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
-        .glassEffect(.clear.interactive(), in: .rect(cornerRadius: 40))
     }
 }
 
 #Preview {
     ScrollView {
-        VStack(spacing: 20) {
+        VStack(spacing: 32) {
             ToolCardView(
                 title: "Lighting Studio",
                 subtitle: "Pick a time of day and let the sun be your lighting director",
