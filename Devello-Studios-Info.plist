@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BACKEND_BASE_URL</key>
-	<string>https://devellostudios.com</string>
+	<string>http://localhost:3000</string>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhanhjem5qeHJmZHJoZXFldGNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyMjMwMDksImV4cCI6MjA2NTc5OTAwOX0.9iUVTEx96amFitjTXUrYh6t2x8SDcPSqnyjk0nEzXfw</string>
 	<key>SUPABASE_REDIRECT_URL</key>

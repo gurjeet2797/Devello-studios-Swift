@@ -20,8 +20,8 @@ struct FloatingMenuView: View {
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(.ultraThinMaterial, in: Capsule())
             }
+            .glassEffect(.clear.interactive(), in: Capsule())
             .simultaneousGesture(TapGesture().onEnded {
                 withAnimation { isShowing = false }
             })
@@ -38,8 +38,8 @@ struct FloatingMenuView: View {
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(.ultraThinMaterial, in: Capsule())
             }
+            .glassEffect(.clear.interactive(), in: Capsule())
             .simultaneousGesture(TapGesture().onEnded {
                 withAnimation { isShowing = false }
             })
@@ -61,8 +61,8 @@ struct FloatingMenuView: View {
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(.ultraThinMaterial, in: Capsule())
             }
+            .glassEffect(.clear.interactive(), in: Capsule())
         }
         .padding(.trailing, 20)
         .padding(.top, 80)

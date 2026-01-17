@@ -14,7 +14,6 @@ struct ContentView: View {
     var body: some View {
         HomeView()
             .preferredColorScheme(isDarkMode ? .dark : .light)
-            .animation(.easeInOut(duration: 0.4), value: isDarkMode)
             .task {
                 await supabaseManager.restoreSession()
             }

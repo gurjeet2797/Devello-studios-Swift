@@ -51,7 +51,7 @@ struct ToolCardView: View {
             }
             .frame(height: cardHeight)
             .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
-            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+            .glassEffect(.clear.interactive(), in: .rect(cornerRadius: 40))
             
             // Description below the card - left aligned
             Text(subtitle)

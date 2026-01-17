@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HeroSection: View {
     @Environment(\.colorScheme) var colorScheme
+    @State private var hasAppeared = false
     
     private let imageHeight: CGFloat = 400
     private let transitionDuration: Double = 0.4
@@ -46,11 +47,17 @@ struct HeroSection: View {
                     .frame(height: 220)
                 }
             }
-            .animation(.easeInOut(duration: transitionDuration), value: colorScheme)
             .offset(y: isOverscrolling ? -minY : 0)
+            .animation(hasAppeared ? .easeInOut(duration: transitionDuration) : nil, value: colorScheme)
         }
         .frame(height: imageHeight)
         .frame(maxWidth: .infinity)
+        .onAppear {
+            // Delay setting hasAppeared to avoid animating initial load
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                hasAppeared = true
+            }
+        }
     }
 }
 

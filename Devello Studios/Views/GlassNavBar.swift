@@ -22,12 +22,14 @@ struct GlassNavBar: View {
                     .frame(width: 28, height: 28)
             }
             .frame(width: 40, height: 40)
-            .background(.ultraThinMaterial, in: Circle())
+            .glassEffect(.clear.interactive(), in: Circle())
 
             Spacer()
 
             Button {
-                isDarkMode.toggle()
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    isDarkMode.toggle()
+                }
             } label: {
                 Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
                     .font(.system(size: 14, weight: .semibold))
@@ -35,7 +37,7 @@ struct GlassNavBar: View {
                     .contentTransition(.symbolEffect(.replace))
             }
             .frame(width: 40, height: 40)
-            .background(.ultraThinMaterial, in: Circle())
+            .glassEffect(.clear.interactive(), in: Circle())
 
             Button {
                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -48,7 +50,7 @@ struct GlassNavBar: View {
                     .contentTransition(.symbolEffect(.replace))
             }
             .frame(width: 40, height: 40)
-            .background(.ultraThinMaterial, in: Circle())
+            .glassEffect(.clear.interactive(), in: Circle())
         }
         .padding(.horizontal, DevelloStyle.Spacing.lg)
         .padding(.top, DevelloStyle.Spacing.md)

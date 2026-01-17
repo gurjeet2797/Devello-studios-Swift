@@ -25,9 +25,8 @@ struct HomeView: View {
                                         .foregroundStyle(.white)
                                         .padding(.horizontal, 40)
                                         .padding(.vertical, 16)
-                                        .background(.blue, in: Capsule())
                                 }
-                                .buttonStyle(.plain)
+                                .buttonStyle(.glass(.regular.tint(.blue).interactive()))
                                 .offset(y: 28)
                             }
                             .padding(.bottom, 40)
@@ -52,28 +51,30 @@ struct HomeView: View {
                             }
                             .padding(.horizontal, DevelloStyle.Spacing.lg)
 
-                            VStack(spacing: 32) {
-                                NavigationLink {
-                                    LightingView()
-                                } label: {
-                                    ToolCardView(
-                                        title: "Lighting Studio",
-                                        subtitle: "Pick a time of day and let the sun be your lighting director",
-                                        backgroundImage: "lightingtool"
-                                    )
-                                }
-                                .buttonStyle(.plain)
+                            GlassEffectContainer(spacing: 32) {
+                                VStack(spacing: 32) {
+                                    NavigationLink {
+                                        LightingView()
+                                    } label: {
+                                        ToolCardView(
+                                            title: "Lighting Studio",
+                                            subtitle: "Pick a time of day and let the sun be your lighting director",
+                                            backgroundImage: "lightingtool"
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
 
-                                NavigationLink {
-                                    ImageEditorView()
-                                } label: {
-                                    ToolCardView(
-                                        title: "Image Editor",
-                                        subtitle: "Edit a single hotspot with AI guidance",
-                                        backgroundImage: "editortool"
-                                    )
+                                    NavigationLink {
+                                        ImageEditorView()
+                                    } label: {
+                                        ToolCardView(
+                                            title: "Image Editor",
+                                            subtitle: "Edit a single hotspot with AI guidance",
+                                            backgroundImage: "editortool"
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
                             .padding(.horizontal, 20)
 
@@ -82,9 +83,7 @@ struct HomeView: View {
                     }
                     .scrollContentBackground(.hidden)
                     .ignoresSafeArea(edges: .top)
-                    .blur(radius: hasAppeared ? (isMenuOpen ? 10 : 0) : 20)
-                    .opacity(hasAppeared ? 1 : 0)
-                    .animation(.easeOut(duration: 0.6), value: hasAppeared)
+                    .blur(radius: isMenuOpen ? 10 : 0)
                     .animation(.easeInOut(duration: 0.3), value: isMenuOpen)
                     .onAppear {
                         scrollToTop = {
@@ -92,7 +91,8 @@ struct HomeView: View {
                                 scrollProxy.scrollTo("top", anchor: .top)
                             }
                         }
-                        withAnimation(.easeOut(duration: 0.6)) {
+                        // Delay setting hasAppeared to avoid animating initial load
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             hasAppeared = true
                         }
                     }
@@ -101,9 +101,6 @@ struct HomeView: View {
                 GlassNavBar(isMenuOpen: $isMenuOpen) {
                     scrollToTop?()
                 }
-                .blur(radius: hasAppeared ? 0 : 20)
-                .opacity(hasAppeared ? 1 : 0)
-                .animation(.easeOut(duration: 0.6), value: hasAppeared)
                 
                 if isMenuOpen {
                     Color.black.opacity(0.3)
@@ -120,7 +117,7 @@ struct HomeView: View {
             .background {
                 Color(.systemBackground)
                     .ignoresSafeArea()
-                    .animation(.easeInOut(duration: 0.4), value: colorScheme)
+                    .animation(hasAppeared ? .easeInOut(duration: 0.4) : nil, value: colorScheme)
             }
             .sheet(isPresented: $showCreateModal) {
                 CreateIdeaModalView()
@@ -147,9 +144,8 @@ struct CreateIdeaModalView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
                         .frame(width: 32, height: 32)
-                        .background(.ultraThinMaterial, in: Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.glass(.clear))
             }
             
             Spacer()
@@ -165,7 +161,7 @@ struct CreateIdeaModalView: View {
                 .font(.system(size: 17))
                 .lineLimit(3...6)
                 .padding(16)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .glassEffect(.clear, in: .rect(cornerRadius: 16))
                 .focused($isInputFocused)
             
             // Create button
@@ -175,12 +171,11 @@ struct CreateIdeaModalView: View {
             } label: {
                 Text("Create")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(ideaText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .blue.opacity(0.5) : .blue, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.glassProminent)
+            .tint(.blue)
             .disabled(ideaText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             
             Spacer()
