@@ -4,6 +4,7 @@ struct HomeView: View {
     @State private var isMenuOpen = false
     @State private var showCreateModal = false
     @State private var scrollToTop: (() -> Void)?
+    @State private var hasAppeared = false
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -24,8 +25,9 @@ struct HomeView: View {
                                         .foregroundStyle(.white)
                                         .padding(.horizontal, 40)
                                         .padding(.vertical, 16)
+                                        .background(.blue, in: Capsule())
                                 }
-                                .buttonStyle(.glass(.regular.tint(.blue).interactive()))
+                                .buttonStyle(.plain)
                                 .offset(y: 28)
                             }
                             .padding(.bottom, 40)
@@ -50,30 +52,28 @@ struct HomeView: View {
                             }
                             .padding(.horizontal, DevelloStyle.Spacing.lg)
 
-                            GlassEffectContainer(spacing: 32) {
-                                VStack(spacing: 32) {
-                                    NavigationLink {
-                                        LightingView()
-                                    } label: {
-                                        ToolCardView(
-                                            title: "Lighting Studio",
-                                            subtitle: "Pick a time of day and let the sun be your lighting director",
-                                            backgroundImage: "lightingtool"
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-
-                                    NavigationLink {
-                                        ImageEditorView()
-                                    } label: {
-                                        ToolCardView(
-                                            title: "Image Editor",
-                                            subtitle: "Edit a single hotspot with AI guidance",
-                                            backgroundImage: "editortool"
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
+                            VStack(spacing: 32) {
+                                NavigationLink {
+                                    LightingView()
+                                } label: {
+                                    ToolCardView(
+                                        title: "Lighting Studio",
+                                        subtitle: "Pick a time of day and let the sun be your lighting director",
+                                        backgroundImage: "lightingtool"
+                                    )
                                 }
+                                .buttonStyle(.plain)
+
+                                NavigationLink {
+                                    ImageEditorView()
+                                } label: {
+                                    ToolCardView(
+                                        title: "Image Editor",
+                                        subtitle: "Edit a single hotspot with AI guidance",
+                                        backgroundImage: "editortool"
+                                    )
+                                }
+                                .buttonStyle(.plain)
                             }
                             .padding(.horizontal, 20)
 
@@ -82,7 +82,9 @@ struct HomeView: View {
                     }
                     .scrollContentBackground(.hidden)
                     .ignoresSafeArea(edges: .top)
-                    .blur(radius: isMenuOpen ? 10 : 0)
+                    .blur(radius: hasAppeared ? (isMenuOpen ? 10 : 0) : 20)
+                    .opacity(hasAppeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6), value: hasAppeared)
                     .animation(.easeInOut(duration: 0.3), value: isMenuOpen)
                     .onAppear {
                         scrollToTop = {
@@ -90,12 +92,18 @@ struct HomeView: View {
                                 scrollProxy.scrollTo("top", anchor: .top)
                             }
                         }
+                        withAnimation(.easeOut(duration: 0.6)) {
+                            hasAppeared = true
+                        }
                     }
                 }
 
                 GlassNavBar(isMenuOpen: $isMenuOpen) {
                     scrollToTop?()
                 }
+                .blur(radius: hasAppeared ? 0 : 20)
+                .opacity(hasAppeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6), value: hasAppeared)
                 
                 if isMenuOpen {
                     Color.black.opacity(0.3)
@@ -139,8 +147,9 @@ struct CreateIdeaModalView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .semibold))
                         .frame(width: 32, height: 32)
+                        .background(.ultraThinMaterial, in: Circle())
                 }
-                .buttonStyle(.glass(.clear))
+                .buttonStyle(.plain)
             }
             
             Spacer()
@@ -156,7 +165,7 @@ struct CreateIdeaModalView: View {
                 .font(.system(size: 17))
                 .lineLimit(3...6)
                 .padding(16)
-                .glassEffect(.clear, in: .rect(cornerRadius: 16))
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .focused($isInputFocused)
             
             // Create button
@@ -166,11 +175,12 @@ struct CreateIdeaModalView: View {
             } label: {
                 Text("Create")
                     .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
+                    .background(ideaText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .blue.opacity(0.5) : .blue, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
-            .buttonStyle(.glassProminent)
-            .tint(.blue)
+            .buttonStyle(.plain)
             .disabled(ideaText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             
             Spacer()
