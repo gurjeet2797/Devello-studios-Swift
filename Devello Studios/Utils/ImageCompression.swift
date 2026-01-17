@@ -18,7 +18,15 @@ enum ImageCompression {
         return data
     }
 
-    private static func resizeIfNeeded(image: UIImage, maxDimension: CGFloat) -> UIImage {
+    /// Safely decode and resize an image from Data to prevent memory crashes with large images
+    static func safeImageFromData(_ data: Data, maxDimension: CGFloat = 2048) -> UIImage? {
+        guard let image = UIImage(data: data) else {
+            return nil
+        }
+        return resizeIfNeeded(image: image, maxDimension: maxDimension)
+    }
+
+    static func resizeIfNeeded(image: UIImage, maxDimension: CGFloat) -> UIImage {
         let size = image.size
         let maxSide = max(size.width, size.height)
         guard maxSide > maxDimension else { return image }

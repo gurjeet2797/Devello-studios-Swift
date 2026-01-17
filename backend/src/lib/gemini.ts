@@ -1,25 +1,16 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { buildEditPrompt, getLightingPrompt } from './prompts';
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+// Initialize the GoogleGenAI client
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY || '' });
 
-// Gemini 2.5 Flash for image generation
-const GEMINI_MODEL = 'gemini-2.5-flash-preview-04-17';
+// Gemini 2.5 Flash for image generation (supports native image output)
+const GEMINI_MODEL = 'gemini-2.5-flash-image';
 
 export interface GeminiResult {
   success: boolean;
   imageBase64?: string;
   error?: string;
-}
-
-function getModel() {
-  return genAI.getGenerativeModel({
-    model: GEMINI_MODEL,
-    generationConfig: {
-      // @ts-expect-error - responseModalities is valid for image generation models
-      responseModalities: ['Text', 'Image'],
-    },
-  });
 }
 
 function extractImageFromResponse(response: any): GeminiResult {
@@ -36,7 +27,6 @@ function extractImageFromResponse(response: any): GeminiResult {
 
   for (const part of parts) {
     if (part.inlineData?.mimeType?.startsWith('image/')) {
-      // Return raw base64 without data URL prefix
       return { success: true, imageBase64: part.inlineData.data };
     }
   }
@@ -54,20 +44,30 @@ export async function createLightingEdit(
   style: string
 ): Promise<GeminiResult> {
   try {
-    const model = getModel();
     const prompt = getLightingPrompt(style);
 
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: 'image/jpeg',
-          data: imageBase64,
+    const response = await ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: imageBase64,
+              },
+            },
+            { text: prompt },
+          ],
         },
+      ],
+      config: {
+        responseModalities: ['Text', 'Image'],
       },
-      { text: prompt },
-    ]);
+    });
 
-    return extractImageFromResponse(result.response);
+    return extractImageFromResponse(response);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: message };
@@ -86,20 +86,30 @@ export async function createGeneralEdit(
   userPrompt: string
 ): Promise<GeminiResult> {
   try {
-    const model = getModel();
     const prompt = buildEditPrompt(userPrompt, hotspot);
 
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: 'image/jpeg',
-          data: imageBase64,
+    const response = await ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: imageBase64,
+              },
+            },
+            { text: prompt },
+          ],
         },
+      ],
+      config: {
+        responseModalities: ['Text', 'Image'],
       },
-      { text: prompt },
-    ]);
+    });
 
-    return extractImageFromResponse(result.response);
+    return extractImageFromResponse(response);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: message };

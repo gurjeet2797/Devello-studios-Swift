@@ -44,9 +44,12 @@ final class LightingViewModel: ObservableObject {
                 throw NSError(domain: "LightingViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "Processing failed"])
             }
 
-            // Convert base64 response to UIImage
-            guard let outputData = Data(base64Encoded: outputBase64),
-                  let output = UIImage(data: outputData) else {
+            // Convert base64 response to UIImage with safe resizing to prevent memory crashes
+            guard let outputData = Data(base64Encoded: outputBase64) else {
+                throw NSError(domain: "LightingViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to decode base64 data"])
+            }
+            
+            guard let output = ImageCompression.safeImageFromData(outputData) else {
                 throw NSError(domain: "LightingViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to decode output image"])
             }
 
