@@ -1,24 +1,25 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var isMenuOpen = false
-    @State private var showCreateModal = false
-    @State private var scrollToTop: (() -> Void)?
-    @State private var hasAppeared = false
-    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var router: AppRouter
+    @State private var isCreateModalExpanded = false
+    @Namespace private var createModalNamespace
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
-                ScrollViewReader { scrollProxy in
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 40) {
-                            ZStack(alignment: .bottom) {
-                                HeroSection()
-                                    .id("top")
-                                
+        ZStack(alignment: .top) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 40) {
+                    ZStack(alignment: .bottom) {
+                        HeroSection()
+                            .id("top")
+                        
+                        // Create button with glass effect morphing
+                        GlassEffectContainer(spacing: 40) {
+                            if !isCreateModalExpanded {
                                 Button {
-                                    showCreateModal = true
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0)) {
+                                        isCreateModalExpanded = true
+                                    }
                                 } label: {
                                     Text("Create anything")
                                         .font(.system(size: 18, weight: .semibold))
@@ -27,166 +28,202 @@ struct HomeView: View {
                                         .padding(.vertical, 16)
                                 }
                                 .buttonStyle(.glass(.regular.tint(.blue).interactive()))
-                                .offset(y: 28)
+                                .glassEffectID("create-modal", in: createModalNamespace)
+                                .glassEffectTransition(.matchedGeometry)
                             }
-                            .padding(.bottom, 40)
+                        }
+                        .offset(y: 50)
+                    }
+                    .padding(.bottom, 60)
 
-                            VStack(alignment: .leading, spacing: DevelloStyle.Spacing.md) {
-                                HStack(alignment: .firstTextBaseline) {
-                                    Text("Apps.")
-                                        .font(.system(size: 34, weight: .bold))
-                                        .foregroundStyle(.primary)
+                    VStack(alignment: .leading, spacing: DevelloStyle.Spacing.md) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("Apps.")
+                                .font(.system(size: 34, weight: .bold))
+                                .foregroundStyle(.primary)
 
-                                    Spacer()
-                                    
-                                    Text("Try our in-house tools")
-                                        .font(DevelloStyle.Fonts.body)
-                                        .foregroundStyle(.secondary)
-                                }
+                            Spacer()
+                            
+                            Text("Try our in-house tools")
+                                .font(DevelloStyle.Fonts.body)
+                                .foregroundStyle(.secondary)
+                        }
 
-                                Text("Adjust the time of day and edit images quickly.")
-                                    .font(DevelloStyle.Fonts.body)
-                                    .foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                        Text("Adjust the time of day and edit images quickly.")
+                            .font(DevelloStyle.Fonts.body)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal, DevelloStyle.Spacing.lg)
+
+                    GlassEffectContainer(spacing: 32) {
+                        VStack(spacing: 32) {
+                            Button {
+                                router.navigate(to: .lighting)
+                            } label: {
+                                ToolCardView(
+                                    title: "Lighting Studio",
+                                    subtitle: "Pick a time of day and let the sun be your lighting director",
+                                    backgroundImage: "lightingtool"
+                                )
                             }
-                            .padding(.horizontal, DevelloStyle.Spacing.lg)
+                            .buttonStyle(.plain)
 
-                            GlassEffectContainer(spacing: 32) {
-                                VStack(spacing: 32) {
-                                    NavigationLink {
-                                        LightingView()
-                                    } label: {
-                                        ToolCardView(
-                                            title: "Lighting Studio",
-                                            subtitle: "Pick a time of day and let the sun be your lighting director",
-                                            backgroundImage: "lightingtool"
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-
-                                    NavigationLink {
-                                        ImageEditorView()
-                                    } label: {
-                                        ToolCardView(
-                                            title: "Image Editor",
-                                            subtitle: "Edit a single hotspot with AI guidance",
-                                            backgroundImage: "editortool"
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+                            Button {
+                                router.navigate(to: .editor)
+                            } label: {
+                                ToolCardView(
+                                    title: "Image Editor",
+                                    subtitle: "Edit a single hotspot with AI guidance",
+                                    backgroundImage: "editortool"
+                                )
                             }
-                            .padding(.horizontal, 20)
-
-                            Spacer(minLength: 80)
+                            .buttonStyle(.plain)
                         }
                     }
-                    .scrollContentBackground(.hidden)
-                    .ignoresSafeArea(edges: .top)
-                    .blur(radius: isMenuOpen ? 10 : 0)
-                    .animation(.easeInOut(duration: 0.3), value: isMenuOpen)
-                    .onAppear {
-                        scrollToTop = {
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
-                                scrollProxy.scrollTo("top", anchor: .top)
-                            }
-                        }
-                        // Delay setting hasAppeared to avoid animating initial load
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            hasAppeared = true
-                        }
-                    }
-                }
+                    .padding(.horizontal, 20)
 
-                GlassNavBar(isMenuOpen: $isMenuOpen) {
-                    scrollToTop?()
-                }
-                
-                if isMenuOpen {
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                isMenuOpen = false
-                            }
-                        }
-                    
-                    FloatingMenuView(isShowing: $isMenuOpen)
+                    Spacer(minLength: 80)
                 }
             }
-            .background {
-                Color(.systemBackground)
-                    .ignoresSafeArea()
-                    .animation(hasAppeared ? .easeInOut(duration: 0.4) : nil, value: colorScheme)
-            }
-            .sheet(isPresented: $showCreateModal) {
-                CreateIdeaModalView()
-                    .presentationBackground(.ultraThinMaterial)
-                    .presentationCornerRadius(24)
+            .scrollContentBackground(.hidden)
+            .ignoresSafeArea(edges: .top)
+            .blur(radius: isCreateModalExpanded ? 10 : 0)
+            .animation(.spring(response: 0.4, dampingFraction: 0.75), value: isCreateModalExpanded)
+            
+            // Expanded create modal overlay
+            if isCreateModalExpanded {
+                ExpandedCreateModalView(
+                    isExpanded: $isCreateModalExpanded,
+                    namespace: createModalNamespace
+                )
             }
         }
     }
 }
 
-struct CreateIdeaModalView: View {
-    @Environment(\.dismiss) private var dismiss
+// MARK: - Expanded Create Modal View
+struct ExpandedCreateModalView: View {
+    @Binding var isExpanded: Bool
+    var namespace: Namespace.ID
+    
     @State private var ideaText = ""
     @FocusState private var isInputFocused: Bool
+    @State private var contentOpacity: Double = 0
     
     var body: some View {
-        VStack(spacing: 32) {
-            // Header
-            HStack {
-                Spacer()
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .semibold))
-                        .frame(width: 32, height: 32)
+        ZStack {
+            // Dimming background
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    dismissModal()
                 }
-                .buttonStyle(.glass(.clear))
+            
+            // Expanded modal container
+            GlassEffectContainer(spacing: 40) {
+                VStack(spacing: 24) {
+                    // Header with close button
+                    HStack {
+                        // Devello Creative Engine label
+                        HStack(spacing: 6) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 12, weight: .medium))
+                            Text("DEVELLO CREATIVE ENGINE")
+                                .font(.system(size: 11, weight: .semibold))
+                                .tracking(0.5)
+                        }
+                        .foregroundStyle(.secondary)
+                        
+                        Spacer()
+                        
+                        Button {
+                            dismissModal()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.primary)
+                                .frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(.glass(.clear.interactive()))
+                    }
+                    
+                    // Title
+                    Text("Type an idea. See what it becomes.")
+                        .font(.system(size: 24, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.primary)
+                        .padding(.top, 8)
+                    
+                    // Input field with glass effect
+                    VStack(alignment: .leading, spacing: 12) {
+                        TextField("Describe something you wish your device could do", text: $ideaText, axis: .vertical)
+                            .font(.system(size: 16))
+                            .lineLimit(3...6)
+                            .foregroundStyle(.primary)
+                        
+                        Divider()
+                            .background(Color.primary.opacity(0.2))
+                        
+                        // Action buttons row
+                        HStack {
+                            Button {
+                                // Generate action
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "sparkles")
+                                        .font(.system(size: 14))
+                                    Text("Generate")
+                                        .font(.system(size: 15, weight: .medium))
+                                }
+                                .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(ideaText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            
+                            Spacer()
+                            
+                            Button {
+                                dismissModal()
+                            } label: {
+                                Text("Cancel")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(20)
+                    .glassEffect(.clear, in: .rect(cornerRadius: 16))
+                }
+                .padding(24)
+                .frame(maxWidth: 400)
+                .glassEffect(.regular.tint(.blue), in: .rect(cornerRadius: 32))
+                .glassEffectID("create-modal", in: namespace)
+                .glassEffectTransition(.matchedGeometry)
             }
-            
-            Spacer()
-            
-            // Title
-            Text("Type an idea.\nSee what it can become.")
-                .font(.system(size: 28, weight: .bold))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.primary)
-            
-            // Input field
-            TextField("Describe your vision...", text: $ideaText, axis: .vertical)
-                .font(.system(size: 17))
-                .lineLimit(3...6)
-                .padding(16)
-                .glassEffect(.clear, in: .rect(cornerRadius: 16))
-                .focused($isInputFocused)
-            
-            // Create button
-            Button {
-                // Handle create action
-                dismiss()
-            } label: {
-                Text("Create")
-                    .font(.system(size: 17, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-            }
-            .buttonStyle(.glassProminent)
-            .tint(.blue)
-            .disabled(ideaText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            
-            Spacer()
+            .opacity(contentOpacity)
         }
-        .padding(24)
         .onAppear {
-            isInputFocused = true
+            withAnimation(.easeOut(duration: 0.3).delay(0.15)) {
+                contentOpacity = 1
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isInputFocused = true
+            }
+        }
+    }
+    
+    private func dismissModal() {
+        isInputFocused = false
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0)) {
+            contentOpacity = 0
+            isExpanded = false
         }
     }
 }
 
 #Preview {
     HomeView()
+        .environmentObject(AppRouter())
 }

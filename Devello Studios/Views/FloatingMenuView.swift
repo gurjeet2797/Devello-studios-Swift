@@ -5,11 +5,16 @@ struct FloatingMenuView: View {
     @Binding var isShowing: Bool
 
     @State private var showingSignIn = false
+    
+    // Navigation callbacks
+    var onNavigateToLighting: (() -> Void)?
+    var onNavigateToEditor: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 12) {
-            NavigationLink {
-                LightingView()
+            Button {
+                withAnimation { isShowing = false }
+                onNavigateToLighting?()
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "sun.max.fill")
@@ -21,13 +26,12 @@ struct FloatingMenuView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
+            .buttonStyle(.plain)
             .glassEffect(.clear.interactive(), in: Capsule())
-            .simultaneousGesture(TapGesture().onEnded {
-                withAnimation { isShowing = false }
-            })
 
-            NavigationLink {
-                ImageEditorView()
+            Button {
+                withAnimation { isShowing = false }
+                onNavigateToEditor?()
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "photo.fill")
@@ -39,10 +43,8 @@ struct FloatingMenuView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
+            .buttonStyle(.plain)
             .glassEffect(.clear.interactive(), in: Capsule())
-            .simultaneousGesture(TapGesture().onEnded {
-                withAnimation { isShowing = false }
-            })
 
             Button {
                 if supabaseManager.session == nil {
@@ -62,6 +64,7 @@ struct FloatingMenuView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
+            .buttonStyle(.plain)
             .glassEffect(.clear.interactive(), in: Capsule())
         }
         .padding(.trailing, 20)
@@ -78,11 +81,13 @@ struct FloatingMenuView: View {
 }
 
 #Preview {
-    NavigationStack {
-        ZStack {
-            Color.gray.opacity(0.2).ignoresSafeArea()
-            FloatingMenuView(isShowing: .constant(true))
-                .environmentObject(SupabaseManager())
-        }
+    ZStack {
+        Color.gray.opacity(0.2).ignoresSafeArea()
+        FloatingMenuView(
+            isShowing: .constant(true),
+            onNavigateToLighting: {},
+            onNavigateToEditor: {}
+        )
+        .environmentObject(SupabaseManager())
     }
 }

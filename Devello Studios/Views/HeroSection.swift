@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HeroSection: View {
     @Environment(\.colorScheme) var colorScheme
-    @State private var hasAppeared = false
+    @Environment(\.scenePhase) private var scenePhase
     
     private let imageHeight: CGFloat = 400
     private let transitionDuration: Double = 0.4
@@ -14,21 +14,12 @@ struct HeroSection: View {
             let stretchHeight = isOverscrolling ? imageHeight + minY : imageHeight
             
             ZStack {
-                // Light mode image
+                // Single cover image for all themes
                 Image("coverimage")
                     .resizable()
                     .scaledToFill()
                     .frame(width: geometry.size.width, height: stretchHeight)
                     .clipped()
-                    .opacity(colorScheme == .dark ? 0 : 1)
-                
-                // Dark mode image
-                Image("dark_cover")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: stretchHeight)
-                    .clipped()
-                    .opacity(colorScheme == .dark ? 1 : 0)
                 
                 // Single adaptive gradient that changes with color scheme
                 VStack {
@@ -48,16 +39,10 @@ struct HeroSection: View {
                 }
             }
             .offset(y: isOverscrolling ? -minY : 0)
-            .animation(hasAppeared ? .easeInOut(duration: transitionDuration) : nil, value: colorScheme)
+            .animation(scenePhase == .active ? .easeInOut(duration: transitionDuration) : nil, value: colorScheme)
         }
         .frame(height: imageHeight)
         .frame(maxWidth: .infinity)
-        .onAppear {
-            // Delay setting hasAppeared to avoid animating initial load
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                hasAppeared = true
-            }
-        }
     }
 }
 
