@@ -18,23 +18,23 @@ struct ContentView: View {
     @StateObject private var editorViewModel = ImageEditorViewModel()
 
     var body: some View {
-        NavigationStack(path: $router.path) {
-            HomeView()
-                .navigationDestination(for: AppRouter.Route.self) { route in
-                    switch route {
-                    case .lighting:
-                        LightingView(viewModel: lightingViewModel)
-                            .toolbar(.hidden, for: .navigationBar)
-                    case .editor:
-                        ImageEditorView(viewModel: editorViewModel)
-                            .toolbar(.hidden, for: .navigationBar)
+        ZStack(alignment: .top) {
+            NavigationStack(path: $router.path) {
+                HomeView()
+                    .navigationDestination(for: AppRouter.Route.self) { route in
+                        switch route {
+                        case .lighting:
+                            LightingView(viewModel: lightingViewModel)
+                                .toolbar(.hidden, for: .navigationBar)
+                        case .editor:
+                            ImageEditorView(viewModel: editorViewModel)
+                                .toolbar(.hidden, for: .navigationBar)
+                        }
                     }
-                }
-                .toolbar(.hidden, for: .navigationBar)
-        }
-        .background(Color(.systemBackground).ignoresSafeArea())
-        .preferredColorScheme(isDarkMode ? .dark : .light)
-        .overlay(alignment: .top) {
+                    .toolbar(.hidden, for: .navigationBar)
+            }
+            .background(Color(.systemBackground).ignoresSafeArea())
+
             GlassNavBar(
                 onLogoTapped: {
                     router.popToRoot()
@@ -44,8 +44,9 @@ struct ContentView: View {
                 }
             )
             .environmentObject(router)
-            .zIndex(1)
+            .zIndex(10)
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
         .sheet(isPresented: $showSignIn) {
             SignInView()
         }

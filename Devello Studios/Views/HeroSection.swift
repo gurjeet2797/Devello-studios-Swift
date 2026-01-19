@@ -20,6 +20,7 @@ struct HeroSection: View {
                     .scaledToFill()
                     .frame(width: geometry.size.width, height: stretchHeight)
                     .clipped()
+                    .zIndex(0)
                 
                 // Single adaptive gradient that changes with color scheme
                 VStack {
@@ -37,6 +38,7 @@ struct HeroSection: View {
                     )
                     .frame(height: 220)
                 }
+                .zIndex(1)
             }
             .offset(y: isOverscrolling ? -minY : 0)
             .animation(scenePhase == .active ? .easeInOut(duration: transitionDuration) : nil, value: colorScheme)

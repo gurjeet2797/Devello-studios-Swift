@@ -12,6 +12,7 @@ struct HomeView: View {
                     ZStack(alignment: .bottom) {
                         HeroSection()
                             .id("top")
+                            .zIndex(0)
                         
                         // Create button with glass effect morphing
                         GlassEffectContainer(spacing: 40) {
@@ -33,6 +34,7 @@ struct HomeView: View {
                             }
                         }
                         .offset(y: 50)
+                        .zIndex(1)
                     }
                     .padding(.bottom, 60)
 
@@ -97,6 +99,7 @@ struct HomeView: View {
                     isExpanded: $isCreateModalExpanded,
                     namespace: createModalNamespace
                 )
+                .zIndex(2)
             }
         }
     }
