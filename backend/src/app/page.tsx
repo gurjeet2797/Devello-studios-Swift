@@ -6,8 +6,10 @@ export default function Home() {
       <ul>
         <li><code>POST /api/ios/lighting</code> - Create lighting prediction</li>
         <li><code>POST /api/ios/edit</code> - Create general edit</li>
-        <li><code>GET /api/ios/jobs/:jobId</code> - Poll job status</li>
       </ul>
+      <p style={{ marginTop: '1rem' }}>
+        View community ideas at <a href="/ideas">/ideas</a>.
+      </p>
     </main>
   );
 }

@@ -1,69 +1,54 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createGeneralEdit } from '@/lib/gemini';
-import type { IOSSingleEditRequest, IOSActionResponse } from '@/types/api';
+import type { IOSSingleEditRequest } from '@/types/api';
 
-export const maxDuration = 60;
+const MAX_IMAGE_BASE64_BYTES = 6_000_000; // ~6MB base64 payload
 
-export async function POST(request: NextRequest) {
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ ok: false, error: message }, { status });
+}
+
+function isLikelyBase64(value: string) {
+  return /^[A-Za-z0-9+/=\n\r]+$/.test(value);
+}
+
+export async function POST(request: Request) {
+  let body: IOSSingleEditRequest;
   try {
-    const body: IOSSingleEditRequest = await request.json();
-
-    if (!body.image_base64) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: 'image_base64 is required',
-        } satisfies IOSActionResponse,
-        { status: 400 }
-      );
-    }
-
-    if (!body.hotspot) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: 'hotspot is required',
-        } satisfies IOSActionResponse,
-        { status: 400 }
-      );
-    }
-
-    if (!body.prompt || body.prompt.trim().length === 0) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: 'prompt is required',
-        } satisfies IOSActionResponse,
-        { status: 400 }
-      );
-    }
-
-    const result = await createGeneralEdit(body.image_base64, body.hotspot, body.prompt);
-
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: result.error || 'Edit processing failed',
-        } satisfies IOSActionResponse,
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      ok: true,
-      image_base64: result.imageBase64,
-    } satisfies IOSActionResponse);
-  } catch (error) {
-    console.error('Edit error:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: message,
-      } satisfies IOSActionResponse,
-      { status: 500 }
-    );
+    body = (await request.json()) as IOSSingleEditRequest;
+  } catch {
+    return jsonError('Invalid JSON body', 400);
   }
+
+  if (!body?.image_base64 || typeof body.image_base64 !== 'string') {
+    return jsonError('Missing image_base64', 400);
+  }
+
+  if (body.image_base64.length > MAX_IMAGE_BASE64_BYTES) {
+    return jsonError('image_base64 payload too large', 413);
+  }
+
+  if (!isLikelyBase64(body.image_base64)) {
+    return jsonError('image_base64 must be base64 encoded', 400);
+  }
+
+  if (!body?.hotspot || typeof body.hotspot.x !== 'number' || typeof body.hotspot.y !== 'number') {
+    return jsonError('Missing hotspot coordinates', 400);
+  }
+
+  const { x, y } = body.hotspot;
+  if (x < 0 || x > 1 || y < 0 || y > 1) {
+    return jsonError('Hotspot coordinates must be between 0 and 1', 400);
+  }
+
+  if (!body?.prompt || typeof body.prompt !== 'string' || body.prompt.trim().length === 0) {
+    return jsonError('Missing prompt', 400);
+  }
+
+  const result = await createGeneralEdit(body.image_base64, { x, y }, body.prompt);
+  if (!result.success || !result.imageBase64) {
+    return jsonError(result.error ?? 'Edit failed', 500);
+  }
+
+  return NextResponse.json({ ok: true, image_base64: result.imageBase64 });
 }

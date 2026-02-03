@@ -85,12 +85,50 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 20)
 
+                    VStack(alignment: .leading, spacing: DevelloStyle.Spacing.md) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("Playground.")
+                                .font(.system(size: 34, weight: .bold))
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Text("Prototype with demos")
+                                .font(DevelloStyle.Fonts.body)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Text("Jump into sample experiences and explore what's next.")
+                            .font(DevelloStyle.Fonts.body)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal, DevelloStyle.Spacing.lg)
+
+                    GlassEffectContainer(spacing: 24) {
+                        Button {
+                            router.navigate(to: .playground)
+                        } label: {
+                            ToolCardView(
+                                title: "Devello Playground",
+                                subtitle: "Try demo flows and early experiments",
+                                backgroundImage: "coverimage"
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 20)
+
                     Spacer(minLength: 80)
                 }
             }
             .scrollContentBackground(.hidden)
             .ignoresSafeArea(edges: .top)
-            .blur(radius: isCreateModalExpanded ? 10 : 0)
+            .overlay(
+                Color.black.opacity(isCreateModalExpanded ? 0.12 : 0)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            )
             .animation(.spring(response: 0.4, dampingFraction: 0.75), value: isCreateModalExpanded)
             
             // Expanded create modal overlay
@@ -113,6 +151,18 @@ struct ExpandedCreateModalView: View {
     @State private var ideaText = ""
     @FocusState private var isInputFocused: Bool
     @State private var contentOpacity: Double = 0
+    @State private var isSubmitting = false
+    @State private var submitMessage: String?
+    @State private var submitError: String?
+    @EnvironmentObject private var supabaseManager: SupabaseManager
+
+    private var ideaService: IdeaService {
+        IdeaService(
+            supabaseURL: AppConfig.supabaseURL,
+            supabaseAnonKey: AppConfig.supabaseAnonKey,
+            accessToken: supabaseManager.accessToken
+        )
+    }
     
     var body: some View {
         ZStack {
@@ -171,18 +221,20 @@ struct ExpandedCreateModalView: View {
                         // Action buttons row
                         HStack {
                             Button {
-                                // Generate action
+                                Task {
+                                    await submitIdea()
+                                }
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: "sparkles")
                                         .font(.system(size: 14))
-                                    Text("Generate")
+                                    Text(isSubmitting ? "Submitting..." : "Submit Idea")
                                         .font(.system(size: 15, weight: .medium))
                                 }
                                 .foregroundStyle(.secondary)
                             }
                             .buttonStyle(.plain)
-                            .disabled(ideaText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .disabled(isSubmitting || ideaText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                             
                             Spacer()
                             
@@ -194,6 +246,18 @@ struct ExpandedCreateModalView: View {
                                     .foregroundStyle(.secondary)
                             }
                             .buttonStyle(.plain)
+                        }
+
+                        if let submitMessage {
+                            Text(submitMessage)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.green)
+                        }
+
+                        if let submitError {
+                            Text(submitError)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.red)
                         }
                     }
                     .padding(20)
@@ -224,9 +288,30 @@ struct ExpandedCreateModalView: View {
             isExpanded = false
         }
     }
+
+    private func submitIdea() async {
+        let trimmed = ideaText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        isSubmitting = true
+        submitError = nil
+        submitMessage = nil
+
+        do {
+            let userId = supabaseManager.userId
+            _ = try await ideaService.submitIdea(text: trimmed, userId: userId)
+            submitMessage = "Idea submitted. Thank you!"
+            ideaText = ""
+        } catch {
+            submitError = error.localizedDescription
+        }
+
+        isSubmitting = false
+    }
 }
 
 #Preview {
     HomeView()
         .environmentObject(AppRouter())
+        .environmentObject(SupabaseManager())
 }

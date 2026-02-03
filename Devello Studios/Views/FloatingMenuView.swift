@@ -9,6 +9,7 @@ struct FloatingMenuView: View {
     // Navigation callbacks
     var onNavigateToLighting: (() -> Void)?
     var onNavigateToEditor: (() -> Void)?
+    var onNavigateToPlayground: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 12) {
@@ -37,6 +38,23 @@ struct FloatingMenuView: View {
                     Image(systemName: "photo.fill")
                         .font(.system(size: 14, weight: .semibold))
                     Text("Image Editor")
+                        .font(.system(size: 15, weight: .medium))
+                }
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(.plain)
+            .glassEffect(.clear.interactive(), in: Capsule())
+
+            Button {
+                withAnimation { isShowing = false }
+                onNavigateToPlayground?()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Playground")
                         .font(.system(size: 15, weight: .medium))
                 }
                 .foregroundStyle(.primary)
@@ -86,7 +104,8 @@ struct FloatingMenuView: View {
         FloatingMenuView(
             isShowing: .constant(true),
             onNavigateToLighting: {},
-            onNavigateToEditor: {}
+            onNavigateToEditor: {},
+            onNavigateToPlayground: {}
         )
         .environmentObject(SupabaseManager())
     }

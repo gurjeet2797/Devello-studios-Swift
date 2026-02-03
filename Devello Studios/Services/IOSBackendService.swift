@@ -29,4 +29,12 @@ struct IOSBackendService {
             body: request
         )
     }
+
+    func generateIdeaSpark(idea: String) async throws -> IOSIdeaSparkResponse {
+        let request = IOSIdeaSparkRequest(idea: idea)
+        return try await client.sendJSON(
+            path: "/api/ideas/spark",
+            body: request
+        )
+    }
 }

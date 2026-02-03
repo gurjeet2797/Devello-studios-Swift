@@ -61,3 +61,7 @@ Safety & Ethics Policy:
 
 Output: Return ONLY the final edited image. Do not return text.`;
 }
+
+export function buildIdeaSparkPrompt(idea: string): string {
+  return `You are an expert product designer and PM. Turn the user's idea into a concise, actionable draft flow.\n\nUser idea: "${idea}"\n\nOutput format (plain text, no Markdown):\nTitle: <short product name>\nOne-liner: <what it does in one sentence>\nTarget user: <primary user>\nCore flow:\n1) <step>\n2) <step>\n3) <step>\nMVP features:\n- <feature>\n- <feature>\n- <feature>\nRisks:\n- <risk>\n- <risk>\n\nKeep it under 220 words. Be concrete and product-focused.`;
+}

@@ -6,6 +6,28 @@ enum LightingStyle: String, CaseIterable, Identifiable {
     case cozyEvening = "Cozy Evening"
 
     var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .dramaticDaylight:
+            return "Daylight"
+        case .middayBright:
+            return "Midday"
+        case .cozyEvening:
+            return "Evening"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .dramaticDaylight:
+            return "sun.max.fill"
+        case .middayBright:
+            return "sun.min.fill"
+        case .cozyEvening:
+            return "moon.fill"
+        }
+    }
 }
 
 struct IOSLightingRequest: Encodable {
@@ -27,5 +49,15 @@ struct IOSHotspot: Codable {
 struct IOSActionResponse: Decodable {
     let ok: Bool
     let image_base64: String?
+    let error: String?
+}
+
+struct IOSIdeaSparkRequest: Encodable {
+    let idea: String
+}
+
+struct IOSIdeaSparkResponse: Decodable {
+    let ok: Bool
+    let draft: String?
     let error: String?
 }

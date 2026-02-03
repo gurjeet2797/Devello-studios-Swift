@@ -73,11 +73,13 @@ final class ImageEditorViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            // Compress image to JPEG and convert to base64
-            guard let imageData = ImageCompression.jpegData(from: inputImage) else {
-                throw NSError(domain: "ImageEditorViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
-            }
-            let base64String = imageData.base64EncodedString()
+            // Compress image to JPEG and convert to base64 off the main thread
+            let base64String = try await Task.detached(priority: .userInitiated) { () -> String in
+                guard let imageData = ImageCompression.jpegData(from: inputImage) else {
+                    throw NSError(domain: "ImageEditorViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
+                }
+                return imageData.base64EncodedString()
+            }.value
 
             let hotspot = IOSHotspot(
                 x: Double(firstMarker.normalizedPoint.x),
@@ -96,14 +98,16 @@ final class ImageEditorViewModel: ObservableObject {
                 throw NSError(domain: "ImageEditorViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "Processing failed"])
             }
 
-            // Convert base64 response to UIImage with safe resizing to prevent memory crashes
-            guard let outputData = Data(base64Encoded: outputBase64) else {
-                throw NSError(domain: "ImageEditorViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to decode base64 data"])
-            }
-            
-            guard let output = ImageCompression.safeImageFromData(outputData) else {
-                throw NSError(domain: "ImageEditorViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to decode output image"])
-            }
+            // Convert base64 response to UIImage with safe resizing off the main thread
+            let output = try await Task.detached(priority: .userInitiated) { () -> UIImage in
+                guard let outputData = Data(base64Encoded: outputBase64) else {
+                    throw NSError(domain: "ImageEditorViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to decode base64 data"])
+                }
+                guard let image = ImageCompression.safeImageFromData(outputData) else {
+                    throw NSError(domain: "ImageEditorViewModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to decode output image"])
+                }
+                return image
+            }.value
 
             outputImage = output
         } catch {

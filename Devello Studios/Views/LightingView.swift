@@ -80,118 +80,199 @@ struct LightingView: View {
     
     // MARK: - Image Loaded Content
     private var imageLoadedContent: some View {
-        ScrollView {
-            VStack(spacing: DevelloStyle.Spacing.lg) {
-                // Change image button
-                PhotosPicker(selection: $selectedItem, matching: .images) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 14))
-                        Text("Change Image")
-                            .font(.system(size: 14, weight: .medium))
+        GeometryReader { geometry in
+            ScrollViewReader { proxy in
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        imageViewport(size: geometry.size, safeAreaInsets: geometry.safeAreaInsets)
+                            .id("imageViewport")
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, DevelloStyle.Spacing.lg)
+                            .padding(.top, DevelloStyle.Spacing.lg)
+                            .padding(.bottom, DevelloStyle.Spacing.lg)
                     }
-                    .foregroundStyle(toolPrimary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .glassEffect(.clear.interactive(), in: .capsule)
                 }
-                
-                // Input image display
-                if let input = viewModel.inputImage {
-                    Image(uiImage: input)
+                .scrollContentBackground(.hidden)
+                .onChange(of: viewModel.inputImage) { _, newValue in
+                    guard newValue != nil else { return }
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        proxy.scrollTo("imageViewport", anchor: .top)
+                    }
+                }
+            }
+        }
+    }
+
+    private func imageViewport(size: CGSize, safeAreaInsets: EdgeInsets) -> some View {
+        let padding = DevelloStyle.Spacing.md
+        let reservedHeight = CGFloat(140) + safeAreaInsets.top + safeAreaInsets.bottom
+        let viewportHeight = max(320, size.height - reservedHeight)
+        let imageMaxSize = CGSize(
+            width: max(0, size.width - padding * 2),
+            height: max(0, viewportHeight - padding * 2)
+        )
+
+        return ZStack(alignment: .bottom) {
+            imageStack(maxSize: imageMaxSize)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            glassControlsOverlay
+                .padding(padding)
+        }
+        .frame(height: viewportHeight)
+        .clipShape(RoundedRectangle(cornerRadius: DevelloStyle.CornerRadius.xl))
+        .glassEffect(.clear, in: .rect(cornerRadius: DevelloStyle.CornerRadius.xl))
+    }
+
+    private func imageStack(maxSize: CGSize) -> some View {
+        ZStack(alignment: .topTrailing) {
+            if let input = viewModel.inputImage {
+                Image(uiImage: input)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: maxSize.width, maxHeight: maxSize.height)
+
+                if let output = viewModel.outputImage {
+                    Image(uiImage: output)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: DevelloStyle.CornerRadius.lg))
-                        .glassEffect(.clear, in: .rect(cornerRadius: DevelloStyle.CornerRadius.lg))
+                        .frame(maxWidth: maxSize.width, maxHeight: maxSize.height)
+                        .opacity(viewModel.showingAfterImage ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.2), value: viewModel.showingAfterImage)
+
+                    beforeAfterBadge
+                        .padding(12)
                 }
-                
-                // Lighting style picker
-                Picker("Lighting Style", selection: $viewModel.selectedStyle) {
-                    ForEach(LightingStyle.allCases) { style in
-                        Text(style.rawValue)
-                            .foregroundStyle(toolPrimary)
-                            .tag(style)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, DevelloStyle.Spacing.md)
-                
-                // Output image
-                if let output = viewModel.outputImage {
-                    VStack(alignment: .leading, spacing: DevelloStyle.Spacing.sm) {
-                        Text("Processed")
-                            .font(DevelloStyle.Fonts.subtitle)
-                            .foregroundStyle(toolPrimary)
-                        Image(uiImage: output)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: DevelloStyle.CornerRadius.lg))
-                    }
-                }
-                
-                // Error message
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                        .font(DevelloStyle.Fonts.caption)
-                        .foregroundStyle(.red)
-                        .padding(.horizontal)
-                }
-                
-                // Action buttons
-                HStack(spacing: DevelloStyle.Spacing.md) {
-                    Button {
-                        Task {
-                            await viewModel.processLighting()
-                        }
-                    } label: {
-                        Text("Process")
-                            .font(.system(size: 16, weight: .semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
-                    .buttonStyle(.glassProminent)
-                    .tint(.blue)
-                    .disabled(viewModel.inputImage == nil || viewModel.isLoading)
-                    
-                    Button {
-                        viewModel.reset()
-                    } label: {
-                        Text("Reset")
-                            .font(.system(size: 16, weight: .medium))
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 14)
-                    }
-                    .buttonStyle(.glass(.regular.interactive()))
-                    .disabled(viewModel.inputImage == nil)
-                }
-                
-                // Save button
-                if let output = viewModel.outputImage {
-                    Button {
-                        Task {
-                            try? await ImageEngine.saveToPhotos(output)
-                        }
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "square.and.arrow.down")
-                            Text("Save to Photos")
-                        }
-                        .font(.system(size: 16, weight: .medium))
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 14)
-                    }
-                    .buttonStyle(.glass(.regular.tint(.green).interactive()))
-                }
-                
-                // Loading indicator
-                if viewModel.isLoading {
-                    ProgressView("Processing...")
-                        .padding()
-                }
-                
-                Spacer(minLength: 40)
             }
-            .padding(DevelloStyle.Spacing.lg)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if viewModel.outputImage != nil {
+                viewModel.toggleBeforeAfter()
+            }
+        }
+    }
+
+    private var beforeAfterBadge: some View {
+        Text(viewModel.showingAfterImage ? "After" : "Before")
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(toolPrimary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .glassEffect(.regular, in: .capsule)
+    }
+
+    private var glassControlsOverlay: some View {
+        VStack(spacing: DevelloStyle.Spacing.md) {
+            lightingStyleButtons
+            primaryActionRow
+            secondaryActionRow
+
+            if let error = viewModel.errorMessage {
+                Text(error)
+                    .font(DevelloStyle.Fonts.caption)
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            if viewModel.isLoading {
+                ProgressView("Processing...")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(DevelloStyle.Spacing.md)
+        .glassEffect(.regular.tint(.secondary).interactive(), in: .rect(cornerRadius: DevelloStyle.CornerRadius.lg))
+    }
+
+    private var lightingStyleButtons: some View {
+        HStack(spacing: DevelloStyle.Spacing.sm) {
+            ForEach(LightingStyle.allCases) { style in
+                Button {
+                    viewModel.selectedStyle = style
+                } label: {
+                    VStack(spacing: 8) {
+                        Image(systemName: style.icon)
+                            .font(.system(size: 20, weight: .semibold))
+                        Text(style.displayName)
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                }
+                .buttonStyle(.glass(
+                    viewModel.selectedStyle == style
+                        ? .regular.tint(.blue).interactive()
+                        : .clear.interactive()
+                ))
+            }
+        }
+    }
+
+    private var primaryActionRow: some View {
+        HStack(spacing: DevelloStyle.Spacing.sm) {
+            PhotosPicker(selection: $selectedItem, matching: .images) {
+                HStack(spacing: 6) {
+                    Image(systemName: "photo.on.rectangle.angled")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Change")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+            }
+            .buttonStyle(.glass(.clear.interactive()))
+
+            Button {
+                Task {
+                    await viewModel.processLighting()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "wand.and.stars")
+                    Text("Process Image")
+                }
+                .font(.system(size: 16, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(.glassProminent)
+            .tint(.blue)
+            .disabled(viewModel.inputImage == nil || viewModel.isLoading)
+        }
+    }
+
+    private var secondaryActionRow: some View {
+        HStack(spacing: DevelloStyle.Spacing.sm) {
+            Button {
+                viewModel.reset()
+            } label: {
+                Text("Reset")
+                    .font(.system(size: 14, weight: .medium))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+            }
+            .buttonStyle(.glass(.clear.interactive()))
+            .disabled(viewModel.inputImage == nil)
+
+            if let output = viewModel.outputImage {
+                Button {
+                    Task {
+                        try? await ImageEngine.saveToPhotos(output)
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "square.and.arrow.down")
+                        Text("Save")
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                }
+                .buttonStyle(.glass(.regular.tint(.green).interactive()))
+            }
+
+            Spacer(minLength: 0)
         }
     }
 }

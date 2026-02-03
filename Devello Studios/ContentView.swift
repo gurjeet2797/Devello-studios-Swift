@@ -29,6 +29,14 @@ struct ContentView: View {
                         case .editor:
                             ImageEditorView(viewModel: editorViewModel)
                                 .toolbar(.hidden, for: .navigationBar)
+                        case .playground:
+                            PlaygroundView(
+                                lightingViewModel: lightingViewModel,
+                                editorViewModel: editorViewModel,
+                                onOpenLighting: { router.navigate(to: .lighting) },
+                                onOpenEditor: { router.navigate(to: .editor) }
+                            )
+                            .toolbar(.hidden, for: .navigationBar)
                         }
                     }
                     .toolbar(.hidden, for: .navigationBar)

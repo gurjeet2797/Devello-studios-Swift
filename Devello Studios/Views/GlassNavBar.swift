@@ -10,17 +10,20 @@ struct GlassNavBar: View {
     var onLogoTapped: (() -> Void)?
     var onNavigateToLighting: (() -> Void)?
     var onNavigateToEditor: (() -> Void)?
+    var onNavigateToPlayground: (() -> Void)?
     var onSignInRequested: (() -> Void)?
     
     init(
         onLogoTapped: (() -> Void)? = nil,
         onNavigateToLighting: (() -> Void)? = nil,
         onNavigateToEditor: (() -> Void)? = nil,
+        onNavigateToPlayground: (() -> Void)? = nil,
         onSignInRequested: (() -> Void)? = nil
     ) {
         self.onLogoTapped = onLogoTapped
         self.onNavigateToLighting = onNavigateToLighting
         self.onNavigateToEditor = onNavigateToEditor
+        self.onNavigateToPlayground = onNavigateToPlayground
         self.onSignInRequested = onSignInRequested
     }
     
@@ -46,6 +49,7 @@ struct GlassNavBar: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(iconColor)
                         .frame(width: 44, height: 44)
+                        .contentShape(Circle())
                         .glassEffect(.clear, in: .circle)
                 }
                 .buttonStyle(.plain)
@@ -64,6 +68,7 @@ struct GlassNavBar: View {
                         .scaledToFit()
                         .frame(width: 34, height: 34)
                         .frame(width: 44, height: 44)
+                        .contentShape(Circle())
                         .glassEffect(.clear, in: .circle)
                 }
                 .buttonStyle(.plain)
@@ -83,6 +88,7 @@ struct GlassNavBar: View {
                     .foregroundStyle(iconColor)
                     .contentTransition(.symbolEffect(.replace))
                     .frame(width: 44, height: 44)
+                    .contentShape(Circle())
                     .glassEffect(.clear, in: .circle)
             }
             .buttonStyle(.plain)
@@ -110,6 +116,16 @@ struct GlassNavBar: View {
                     } label: {
                         Label("Image Editor", systemImage: "photo.fill")
                     }
+
+                    Button {
+                        if let onNavigateToPlayground {
+                            onNavigateToPlayground()
+                        } else {
+                            router.navigate(to: .playground)
+                        }
+                    } label: {
+                        Label("Playground", systemImage: "sparkles")
+                    }
                     
                     Divider()
                 } else {
@@ -129,6 +145,15 @@ struct GlassNavBar: View {
                             router.navigate(to: .editor)
                         } label: {
                             Label("Switch to Image Editor", systemImage: "photo.fill")
+                        }
+                    }
+
+                    if router.path.last != AppRouter.Route.playground {
+                        Button {
+                            router.popToRoot()
+                            router.navigate(to: .playground)
+                        } label: {
+                            Label("Switch to Playground", systemImage: "sparkles")
                         }
                     }
                     
@@ -162,6 +187,7 @@ struct GlassNavBar: View {
                     .glassEffect(.clear, in: .circle)
             }
         }
+        .contentShape(Rectangle())
         .padding(.horizontal, DevelloStyle.Spacing.lg)
         .padding(.top, DevelloStyle.Spacing.md)
         .padding(.bottom, DevelloStyle.Spacing.sm)

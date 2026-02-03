@@ -22,6 +22,10 @@ final class SupabaseManager: ObservableObject {
         session?.accessToken
     }
 
+    var userId: String? {
+        session?.user.id.uuidString
+    }
+
     func restoreSession() async {
         do {
             session = try await client.auth.session

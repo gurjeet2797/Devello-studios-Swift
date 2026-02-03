@@ -8,6 +8,7 @@ final class AppRouter: ObservableObject {
     enum Route: Hashable {
         case lighting
         case editor
+        case playground
     }
 
     func navigate(to route: Route) {
